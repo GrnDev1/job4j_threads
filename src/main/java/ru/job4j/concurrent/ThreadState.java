@@ -1,7 +1,6 @@
 package ru.job4j.concurrent;
 
 public class ThreadState {
-    @SuppressWarnings("checkstyle:EmptyBlock")
     public static void main(String[] args) {
         Thread first = new Thread(
                 () -> System.out.println(Thread.currentThread().getName())
