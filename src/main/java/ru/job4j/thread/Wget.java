@@ -28,15 +28,15 @@ public class Wget implements Runnable {
             long countBytes = 0;
             int bytesRead;
             long startTime = System.currentTimeMillis();
-            double time;
+            long time;
             while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
                 countBytes += bytesRead;
                 out.write(dataBuffer, 0, bytesRead);
                 if (countBytes >= speed) {
-                    time = (System.currentTimeMillis() - startTime) / 1000.0;
-                    if (time < 1) {
+                    time = (System.currentTimeMillis() - startTime);
+                    if (time < 1000) {
                         try {
-                            Thread.sleep((long) ((1 - time) * 1000));
+                            Thread.sleep(1000 - time);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -50,25 +50,20 @@ public class Wget implements Runnable {
         }
     }
 
-    public static boolean urlValidator(String url) {
+    public static void validate(String[] args) {
+        if (args.length < 3) {
+            throw new IllegalArgumentException("Arguments not passed to program: 1. URL address; 2. Speed; 3. File name");
+        }
         try {
-            new URL(url).toURI();
-            return true;
-        } catch (URISyntaxException exception) {
-            return false;
-        } catch (MalformedURLException exception) {
-            return false;
+            new URL(args[0]).toURI();
+        } catch (URISyntaxException | MalformedURLException exception) {
+            exception.printStackTrace();
         }
     }
 
     public static void main(String[] args) throws InterruptedException {
-        if (args.length < 3) {
-            throw new IllegalArgumentException("Arguments not passed to program: 1. URL address; 2. Speed; 3. File name");
-        }
+        validate(args);
         String url = args[0];
-        if (!urlValidator(url)) {
-            throw new IllegalArgumentException("Illegal URL");
-        }
         int speed = Integer.parseInt(args[1]);
         String name = args[2];
         Thread wget = new Thread(new Wget(url, speed, name));
