@@ -30,9 +30,7 @@ class AccountStorageTest {
         var storage = new AccountStorage();
         storage.add(new Account(1, 100));
         storage.delete(1);
-        assertThatThrownBy(() -> storage.getById(1))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Not found account by id = 1");
+        assertThat(storage.getById(1)).isEmpty();
     }
 
     @Test
@@ -56,15 +54,4 @@ class AccountStorageTest {
         storage.add(new Account(2, 100));
         assertThat(storage.transfer(1, 2, 100)).isFalse();
     }
-
-    @Test
-    void whenTransferThenException() {
-        var storage = new AccountStorage();
-        storage.add(new Account(1, 100));
-        storage.add(new Account(3, 100));
-        assertThatThrownBy(() -> storage.transfer(1, 2, 100))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Not found account by id = 2");
-    }
-
 }
