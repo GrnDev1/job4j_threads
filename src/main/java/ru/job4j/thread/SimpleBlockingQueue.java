@@ -15,25 +15,20 @@ public class SimpleBlockingQueue<T> {
     @GuardedBy("this")
     private final Queue<T> queue = new LinkedList<>();
 
-    public void offer(T value) throws InterruptedException {
-        synchronized (queue) {
-            while (queue.size() == size) {
-                    queue.wait();
-            }
-            queue.offer(value);
-            queue.notifyAll();
+    public synchronized void offer(T value) throws InterruptedException {
+        while (queue.size() == size) {
+            wait();
         }
+        queue.offer(value);
+        notifyAll();
     }
 
-    public T poll() throws InterruptedException {
-        T result;
-        synchronized (queue) {
-            while (queue.size() == 0) {
-                queue.wait();
-            }
-            result = queue.poll();
-            queue.notifyAll();
+    public synchronized T poll() throws InterruptedException {
+        while (queue.size() == 0) {
+            wait();
         }
+        T result = queue.poll();
+        notifyAll();
         return result;
     }
 }
