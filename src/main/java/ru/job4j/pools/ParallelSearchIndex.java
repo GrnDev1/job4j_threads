@@ -1,18 +1,14 @@
 package ru.job4j.pools;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
-public class ParallelSearchIndex<T> extends RecursiveAction {
+public class ParallelSearchIndex<T> extends RecursiveTask<Integer> {
 
     private final T[] array;
     private final int from;
     private final int to;
     private final T obj;
-    private static final List<Integer> RESULT = new ArrayList<>();
 
     public ParallelSearchIndex(T obj, T[] array, int from, int to) {
         this.array = array;
@@ -21,7 +17,7 @@ public class ParallelSearchIndex<T> extends RecursiveAction {
         this.obj = obj;
     }
 
-    public static <T> int linearSearch(T obj, T[] array, int from, int to) {
+    public int linearSearch() {
         int result = -1;
         for (int i = from; i <= to; i++) {
             if (array[i].equals(obj)) {
@@ -33,25 +29,19 @@ public class ParallelSearchIndex<T> extends RecursiveAction {
     }
 
     @Override
-    protected void compute() {
+    protected Integer compute() {
         if (to - from <= 10) {
-            int temp = linearSearch(obj, array, from, to);
-            if (temp != -1) {
-                RESULT.add(temp);
-            }
-        } else {
-            int mid = (from + to) / 2;
-            ParallelSearchIndex<T> leftSort = new ParallelSearchIndex<>(obj, array, from, mid);
-            ParallelSearchIndex<T> rightSort = new ParallelSearchIndex<>(obj, array, mid + 1, to);
-            invokeAll(leftSort, rightSort);
+            return linearSearch();
         }
+        int mid = (from + to) / 2;
+        ParallelSearchIndex<T> leftSort = new ParallelSearchIndex<>(obj, array, from, mid);
+        ParallelSearchIndex<T> rightSort = new ParallelSearchIndex<>(obj, array, mid + 1, to);
+        leftSort.fork();
+        rightSort.fork();
+        return Math.max(leftSort.join(), rightSort.join());
     }
 
     public static <T> Integer searchIndex(T obj, T[] array) {
-        new ForkJoinPool().invoke(new ParallelSearchIndex<T>(obj, array, 0, array.length - 1));
-        Collections.sort(RESULT);
-        int result = RESULT.isEmpty() ? -1 : RESULT.get(0);
-        RESULT.clear();
-        return result;
+        return new ForkJoinPool().invoke(new ParallelSearchIndex<T>(obj, array, 0, array.length - 1));
     }
 }
